@@ -2,7 +2,7 @@
 
 <img align="left" width="128" src="https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/filemanager/filemanager-logo.png"/>
 
-Desktop file manager developed on the Kivy platform using the KivyMD library.
+### Desktop file manager developed on the Kivy platform using the KivyMD library.
 
 Perhaps the file manager will work on mobile devices, but we are not even trying to check if this is the case.
 We are not testing this library on mobile devices or adapting it for mobile devices.
