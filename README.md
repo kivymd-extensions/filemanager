@@ -29,6 +29,18 @@ Example().run()
   </a>
 </p>
 
+### Customization
+
+```python
+FileManager(path_to_skin="/Users/macbookair/data/images").open()
+```
+
+<p align="center">
+  <a href="https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/filemanager/filemanager-custom.png">
+    <img width="800" src="https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/filemanager/filemanager-custom.png" title="Custom file manager">
+  </a>
+</p>
+
 ### Installation
 
 ```bash
