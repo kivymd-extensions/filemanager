@@ -11,21 +11,14 @@ Because, as the name suggests, we are developing this module for desktop use.
 ### Usage
 
 ```python
-from kivy.uix.button import Button
-
 from kivymd.app import MDApp
+
 from kivymd.components.filemanager import FileManager
 
 
 class Example(MDApp):
-    def open(self, instance):
+    def on_start(self):
         FileManager().open()
-
-    def build(self):
-        self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "BlueGray"
-        self.theme_cls.primary_accent = "Gray"
-        return Button(on_press=self.open)
 
 Example().run()
 ```
