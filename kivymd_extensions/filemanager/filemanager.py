@@ -183,7 +183,6 @@ Builder.load_string(
 #:import os os
 #:import Path pathlib.Path
 #:import images_path kivymd.images_path
-#:import CustomFileChooserIcon kivymd_extensions.filemanager.file_chooser_icon.CustomFileChooserIcon
 
 
 <RightContentCls>
