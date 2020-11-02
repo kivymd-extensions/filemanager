@@ -458,6 +458,8 @@ class FileManager(BaseDialog):
             ) as data:
                 self.ext_files = ast.literal_eval(data.read())
 
+    #def show_hint_name_file(self, path):
+
     def set_path(self, path):
         """Sets the directory path for the `FileChooserIconLayout` class."""
 
@@ -575,6 +577,8 @@ class FileManager(BaseDialog):
                 self.dispatch("on_tap_dir", entry_object.path)
             else:
                 self.dispatch("on_tap_file", entry_object.path)
+        if hasattr(entry_object, "remove_tooltip"):
+            entry_object.remove_tooltip()
 
     def call_context_menu_plugin(self, name_plugin, entry_object):
         module = importlib.import_module(f"kivymd_extensions.filemanager.libs.plugins.contextmenu")
