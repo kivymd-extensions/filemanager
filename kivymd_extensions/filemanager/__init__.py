@@ -1,3 +1,5 @@
+__version__ = "0.1.1"
+
 from kivy.factory import Factory
 
 from kivymd_extensions.filemanager.libs import tools
@@ -7,4 +9,3 @@ Factory.register(
     "CustomFileChooserIcon",
     module="kivymd_extensions.filemanager.file_chooser_icon",
 )
-__version__ = "0.1.0"
