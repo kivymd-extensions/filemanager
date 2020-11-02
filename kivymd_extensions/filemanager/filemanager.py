@@ -183,7 +183,7 @@ Builder.load_string(
 #:import os os
 #:import Path pathlib.Path
 #:import images_path kivymd.images_path
-#:import CustomFileChooserIcon file_chooser_icon.CustomFileChooserIcon
+#:import CustomFileChooserIcon kivymd_extensions.filemanager.file_chooser_icon.CustomFileChooserIcon
 
 
 <RightContentCls>
@@ -578,7 +578,7 @@ class FileManager(BaseDialog):
                 self.dispatch("on_tap_file", entry_object.path)
 
     def call_context_menu_plugin(self, name_plugin, entry_object):
-        module = importlib.import_module(f"libs.plugins.contextmenu")
+        module = importlib.import_module(f"kivymd_extensions.filemanager.libs.plugins.contextmenu")
         plugin_cls = module.ContextMenuPlugin(
             instance_manager=self,
             entry_object=entry_object,

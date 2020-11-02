@@ -5,7 +5,7 @@ from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 from kivymd.utils import asynckivy
 
-from libs.plugins import PluginBaseDialog
+from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
 
 with open(
     os.path.join(os.path.dirname(__file__), "dialog_zip.kv"), encoding="utf-8"

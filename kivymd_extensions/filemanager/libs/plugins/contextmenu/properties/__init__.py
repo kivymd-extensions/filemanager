@@ -5,8 +5,8 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import ObjectProperty
 
-from libs.plugins import PluginBaseDialog
-from libs.tools import file_size, get_access_string
+from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
+from kivymd_extensions.filemanager.libs.tools import file_size, get_access_string
 
 with open(
     os.path.join(os.path.dirname(__file__), "dialog_properties.kv"),

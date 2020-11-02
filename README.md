@@ -60,7 +60,7 @@ FileManager(path_to_skin="/Users/macbookair/data/images").open()
 
 ## Examples
 
-```batch
+```bash
 git clone https://github.com/kivymd-extensions/filemanager.git
 cd filemanager
 cd examples/full_example
@@ -71,5 +71,5 @@ python main.py
 
 If you need assistance or you have a question, you can ask for help on our mailing list:
 
-- **Discord server:** https://discord.gg/HjHDr8s
+- **Discord server:** https://discord.gg/wu3qBST
 - _Email:_ kivydevelopment@gmail.com
