@@ -1,7 +1,5 @@
 #:import os os
-#:import get_icon_for_treeview kivymd_extensions.filemanager.libs.tools.get_icon_for_treeview
-#:import tools kivymd_extensions.filemanager.libs.tools
-#:import file_size kivymd_extensions.filemanager.libs.tools.file_size
+#:import filemanager kivymd_extensions.filemanager
 
 
 <-FileChooserListLayout>
@@ -50,7 +48,7 @@
             rgba: 1, 1, 1, int(not self.is_leaf)
         Rectangle:
             source:
-                os.path.join(os.path.dirname(os.path.dirname(tools.__file__)), \
+                os.path.join(os.path.dirname(os.path.dirname(filemanager.tools.__file__)), \
                 'data', 'images', "{}.png".format('opened' if self.is_open else 'closed'))
 
             size: self.height / 2.5, self.height / 2.5
@@ -139,7 +137,9 @@
                 md_bg_color_disabled: 0, 0, 0, 0
                 theme_text_color: "Custom"
                 text_color: app.theme_cls.primary_color if ctx.isdir else [.5, .5, .5, 1]
-                icon: get_icon_for_treeview(ctx.path, os.path.splitext(ctx.name)[1], ctx.isdir)
+                icon:
+                    filemanager.tools.get_icon_for_treeview(\
+                    ctx.path, os.path.splitext(ctx.name)[1], ctx.isdir)
 
             Label:
                 id: filename
