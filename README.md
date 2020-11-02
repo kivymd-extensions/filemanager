@@ -3,10 +3,11 @@
 <img align="left" width="128" src="https://github.com/kivymd-extensions/filemanager/raw/main/docs/sources/_static/logo-kivymd.png"/>
 
 Desktop file manager developed on the Kivy platform using the KivyMD library.
-
 Perhaps the file manager will work on mobile devices, but we are not even trying to check if this is the case.
 We are not testing this library on mobile devices or adapting it for mobile devices.
 Because, as the name suggests, we are developing this module for desktop use.
+
+[![Documentation Status](https://readthedocs.org/projects/file-manager/badge/?version=latest)](https://file-manager.readthedocs.io/en/latest/?badge=latest)
 
 ## Installation
 
