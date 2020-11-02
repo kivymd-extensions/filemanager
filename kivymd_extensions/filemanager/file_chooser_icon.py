@@ -13,7 +13,7 @@ from kivy.utils import QueryDict
 
 Builder.load_string(
     """
-[FileThumbEntry@Widget+HoverBehavior]:
+[FileThumbEntry@MDTooltip]:
     image: image
     locked: False
     path: ctx.path
@@ -27,7 +27,11 @@ Builder.load_string(
         if not ctx.controller().manager.context_menu_open: self.collide_point(*args[1].pos) \
         and ctx.controller().entry_released(self, args[1]) and root.entry_released_allow
     size: ctx.controller().thumbsize + dp(52), ctx.controller().thumbsize + dp(52)
-    #on_enter: ctx.controller().set_list_contents_preview(self, ctx.path)
+    tooltip_text: ctx.name
+    tooltip_display_delay: 1.5
+    #on_enter:
+    #    ctx.controller().set_list_contents_preview(self, ctx.path)
+    #    ctx.controller().show_hint_name_file(ctx.path)
     #on_leave:
 
     canvas:
