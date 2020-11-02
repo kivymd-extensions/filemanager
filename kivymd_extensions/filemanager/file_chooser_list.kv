@@ -1,0 +1,152 @@
+#:import os os
+#:import get_icon_for_treeview libs.tools.get_icon_for_treeview
+#:import tools libs.tools
+#:import file_size libs.tools.file_size
+
+
+<-FileChooserListLayout>
+    on_entry_added: treeview.add_node(args[1])
+    on_entries_cleared: treeview.root.nodes = []
+    on_subentry_to_entry: not args[2].locked and treeview.add_node(args[1], args[2])
+    on_remove_subentry: args[2].nodes = []
+
+    BoxLayout:
+        pos: root.pos
+        size: root.size
+        size_hint: None, None
+        orientation: 'vertical'
+
+        ScrollView:
+            id: scrollview
+            do_scroll_x: False
+
+            Scatter:
+                do_rotation: False
+                do_scale: False
+                do_translation: False
+                size: treeview.size
+                size_hint_y: None
+
+                TreeView:
+                    id: treeview
+                    hide_root: True
+                    size_hint_y: None
+                    width: scrollview.width
+                    height: self.minimum_height
+                    on_node_expand: root.controller.entry_subselect(args[1])
+                    on_node_collapse: root.controller.close_subselection(args[1])
+
+
+<-TreeViewNode>
+    canvas.before:
+        Color:
+            rgba:
+                self.odd_color if not self.is_selected else app.theme_cls.bg_light \
+                if app.theme_cls.theme_style == "Dark" else app.theme_cls.bg_darkest
+        Rectangle:
+            pos: [self.parent.x, self.y] if self.parent else [0, 0]
+            size: [self.parent.width, self.height] if self.parent else [1, 1]
+        Color:
+            rgba: 1, 1, 1, int(not self.is_leaf)
+        Rectangle:
+            source:
+                os.path.join(os.path.dirname(os.path.dirname(tools.__file__)), \
+                'data', 'images', "{}.png".format('opened' if self.is_open else 'closed'))
+
+            size: self.height / 2.5, self.height / 2.5
+            pos: self.x - 10, self.center_y - 6
+    canvas.after:
+        Color:
+            rgba: .5, .5, .5, .2
+
+
+<-FileChooserProgress>
+    pos_hint: {'x': 0, 'y': 0}
+
+    canvas:
+        Color:
+            rgba: 0, 0, 0, .3
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    Label:
+        pos_hint: {'center_x': .5, 'y': .6}
+        size_hint: None, .2
+        width: self.texture_size[0]
+        text: 'Opening %s' % root.path
+        halign: 'center'
+        shorten: True
+        shorten_from: 'center'
+        text_size: root.width, None
+
+    FloatLayout:
+        pos_hint: {'x': .2, 'y': .4}
+        size_hint: .6, .2
+
+        MDProgressBar:
+            id: pb
+            pos_hint: {'x': 0, 'center_y': .5}
+            max: root.total
+            value: root.index
+
+        Label:
+            pos_hint: {'x': 0}
+            text: '%d / %d' % (root.index, root.total)
+            size_hint_y: None
+            height: self.texture_size[1]
+            y: pb.center_y - self.height - 8
+            font_size: '13sp'
+            color: (.8, .8, .8, .8)
+
+    AnchorLayout:
+        pos_hint: {'x': .2, 'y': .2}
+        size_hint: .6, .2
+
+        MDRaisedButton:
+            text: 'Cancel'
+            on_release: root.cancel()
+
+
+[FileListEntry@FloatLayout+TreeViewNode]
+    locked: False
+    entries: []
+    path: ctx.path
+    is_selected: self.path in ctx.controller().selection
+    size_hint_y: None
+    height: '128dp' if dp(1) > 1 else '24dp'
+    is_leaf: not ctx.isdir or ctx.name.endswith('..' + ctx.sep) or self.locked
+    on_touch_down:
+        if self.collide_point(*args[1].pos): ctx.controller().manager.tap_on_file_dir(args, "FileChooserList")
+        if not ctx.controller().manager.context_menu_open: ctx.controller().callback(ctx.path)
+
+    BoxLayout:
+        orientation: 'vertical'
+        x: root.pos[0]
+        y: root.pos[1] - dp(15)
+        size_hint_x: None
+        width: root.width - dp(10)
+        spacing: dp(10)
+        padding: dp(10)
+
+        MDBoxLayout:
+            adaptive_height: True
+            spacing: dp(10)
+
+            MDIconButton:
+                user_font_size: "15sp"
+                disabled: True
+                md_bg_color_disabled: 0, 0, 0, 0
+                theme_text_color: "Custom"
+                text_color: app.theme_cls.primary_color if ctx.isdir else [.5, .5, .5, 1]
+                icon: get_icon_for_treeview(ctx.path, os.path.splitext(ctx.name)[1], ctx.isdir)
+
+            Label:
+                id: filename
+                text_size: self.width, None
+                halign: 'left'
+                shorten: True
+                text: ctx.name.split('#')[0] if '#' in ctx.name else ctx.name
+                bold: True
+                font_size: '12sp'
+                color: app.theme_cls.text_color

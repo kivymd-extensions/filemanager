@@ -1,0 +1,39 @@
+<DialogZipArchive>
+    size_hint: None, None
+    height: container.height
+    width: Window.width * 40 / 100
+    auto_dismiss: False
+
+    MDBoxLayout:
+        id: container
+        spacing: "12dp"
+        padding: "12dp", "12dp", "12dp", "20dp"
+        orientation: "vertical"
+        adaptive_height: True
+
+        MDBoxLayout:
+            spacing: "20dp"
+            adaptive_height: True
+
+            MDIconButton:
+                icon: "folder-zip"
+                pos_hint: {'center_y': .5}
+                user_font_size: "48sp"
+                disabled: True
+
+            MDLabel:
+                text: "[b]Create archive:[/b]"
+                font_style: "Subtitle1"
+                pos_hint: {'center_y': .5}
+                theme_text_color: "Custom"
+                text_color: root.theme_cls.primary_color
+                markup: True
+                shorten: True
+
+        MDLabel:
+            id: lbl_name_file
+            font_style: "Caption"
+
+        MDProgressBar:
+            id: progress_line
+            max: 100

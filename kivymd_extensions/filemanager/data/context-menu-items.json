@@ -1,0 +1,10 @@
+[
+  {"": "Open"},
+  {},
+  {"open-in-app": "Open in app >"},
+  {"trash-can-outline": "Move to Trash", "cls": "move_to_trash"},
+  {"rename-box": "Rename", "cls": "rename"},
+  {"zip-box-outline": "Create zip", "cls": "create_zip"},
+  {},
+  {"": "Properties", "cls": "show_properties"}
+]

@@ -1,0 +1,51 @@
+<DialogRename>
+    size_hint: None, None
+    height: container.height
+    width: Window.width * 40 / 100
+    auto_dismiss: False
+
+    MDBoxLayout:
+        id: container
+        spacing: "4dp"
+        padding: "12dp", "12dp", "12dp", "8dp"
+        orientation: "vertical"
+        adaptive_height: True
+
+        MDBoxLayout:
+            adaptive_height: True
+
+            MDIconButton:
+                icon: "rename-box"
+                pos_hint: {'center_y': .5}
+                user_font_size: "48sp"
+                disabled: True
+
+            MDLabel:
+                text: "[b]Rename:[/b]"
+                font_style: "Subtitle1"
+                pos_hint: {'center_y': .5}
+                theme_text_color: "Custom"
+                text_color: root.theme_cls.primary_color
+                markup: True
+                shorten: True
+
+        MDSeparator:
+
+        MDTextField:
+            id: field
+            text: os.path.split(root.instance_context_menu.entry_object.path)[1]
+
+        MDBoxLayout:
+            id: box
+            adaptive_height: True
+            spacing: "12dp"
+
+            Widget:
+
+            MDFlatButton:
+                text: "CANCEL"
+                on_release: root.dismiss()
+
+            MDRaisedButton:
+                text: "RENAME"
+                on_release: root.rename_file(field.text)

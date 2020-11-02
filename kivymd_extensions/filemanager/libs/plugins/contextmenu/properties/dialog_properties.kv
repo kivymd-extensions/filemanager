@@ -1,0 +1,89 @@
+#:import os os
+#:import STANDARD_INCREMENT kivymd.material_resources.STANDARD_INCREMENT
+
+
+<LabelDialogProperties@MDLabel>
+    shorten: True
+    markup: True
+    size_hint_y: None
+    height: self.texture_size[1]
+
+
+<DialogProperties>
+    size_hint_y: None
+    height: container.height
+
+    MDBoxLayout:
+        id: container
+        orientation: "vertical"
+        adaptive_height: True
+        spacing: "12dp"
+        padding: "12dp"
+
+        MDBoxLayout
+            size_hint_y: None
+            height: STANDARD_INCREMENT
+            spacing: "12dp"
+
+            MDIconButton:
+                size_hint_x: None
+                width: "50dp"
+                disabled: True
+                icon:
+                    root.instance_context_menu.instance_manager.get_icon_file(\
+                    root.instance_context_menu.entry_object.path)
+
+            MDBoxLayout:
+                orientation: "vertical"
+
+                MDBoxLayout:
+
+                    MDLabel:
+                        text: os.path.split(root.instance_context_menu.entry_object.path)[1]
+                        shorten: True
+                        font_style: "Caption"
+                        bold: True
+                        theme_text_color: "Custom"
+                        text_color: root.theme_cls.primary_color
+
+                    MDLabel:
+                        text: root.get_file_size()
+                        halign: "right"
+                        shorten: True
+                        font_style: "Caption"
+
+                MDLabel:
+                    text: f"Modified {root.get_last_changed()}"
+                    shorten: True
+                    font_style: "Caption"
+
+        MDSeparator:
+
+        LabelDialogProperties:
+            text: f"[b]Date of creation:[/b] {root.get_first_created()}"
+
+        LabelDialogProperties:
+            text: f"[b]Date last opened:[/b] {root.get_last_opened()}"
+
+        Widget:
+            size_hint_y: None
+            height: "4dp"
+
+        MDLabel:
+            text: f"Access rights"
+            font_style: "H6"
+            theme_text_color: "Custom"
+            text_color: root.theme_cls.primary_color
+
+        Widget:
+            size_hint_y: None
+            height: "4dp"
+
+        LabelDialogProperties:
+            id: r
+
+        LabelDialogProperties:
+            id: w
+
+        LabelDialogProperties:
+            id: x

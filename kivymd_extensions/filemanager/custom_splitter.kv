@@ -1,0 +1,20 @@
+#:import Window kivy.core.window.Window
+#:import HoverBehavior kivymd.uix.behaviors.HoverBehavior
+
+
+<CustomStrip@Image+HoverBehavior>
+
+
+<-SplitterStrip>:
+    border: self.parent.border if self.parent else (3, 3, 3, 3)
+    horizontal: "_h" if self.parent and self.parent.sizable_from[0] in  ("t", "b") else ""
+    background_normal: "atlas://data/images/defaulttheme/splitter{}{}".format("_disabled" if self.disabled else "", self.horizontal)
+    background_down: "atlas://data/images/defaulttheme/splitter_down{}{}".format("_disabled" if self.disabled else "", self.horizontal)
+
+    CustomStrip:
+        pos: root.pos
+        size: root.size
+        allow_stretch: True
+        source: 'atlas://data/images/defaulttheme/splitter_grip' + root.horizontal
+        on_enter: Window.set_system_cursor("size_we") if root.parent.direction == "right-left" else Window.set_system_cursor("size_ns")
+        on_leave: Window.set_system_cursor("arrow")
