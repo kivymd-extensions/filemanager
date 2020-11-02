@@ -4,12 +4,7 @@ import os
 from os import walk
 from os.path import expanduser, isdir, dirname, join, sep
 
-from kivy.uix.widget import Widget
 from kivy.utils import platform
-
-
-class DDD(Widget):
-    pass
 
 
 def convert_bytes(num):
