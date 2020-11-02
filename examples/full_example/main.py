@@ -31,11 +31,7 @@ class Example(MDApp):
         )
 
     def on_start(self):
-        self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Orange"
-        manager = FileManager(
-            path_to_skin=None,
-        )
+        manager = FileManager()
         manager.bind(
             on_tap_file=self.on_tap_file,
             on_tap_dir=self.on_tap_dir,
