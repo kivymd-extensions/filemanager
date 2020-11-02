@@ -1,6 +1,6 @@
 # File Manager
 
-<img align="left" width="128" src="https://github.com/HeaTTheatR/KivyMD-data/raw/master/gallery/filemanager/filemanager-logo.png"/>
+<img align="left" width="128" src="https://github.com/kivymd-extensions/filemanager/raw/main/docs/sources/_static/logo-kivymd.png"/>
 
 Desktop file manager developed on the Kivy platform using the KivyMD library.
 
@@ -70,5 +70,5 @@ python main.py
 
 If you need assistance or you have a question, you can ask for help on our mailing list:
 
-- **Discord server:** https://discord.gg/wu3qBST
+- **Discord server:** https://discord.gg/HjHDr8s
 - _Email:_ kivydevelopment@gmail.com
