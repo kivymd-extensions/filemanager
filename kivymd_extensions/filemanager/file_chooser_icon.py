@@ -27,12 +27,10 @@ Builder.load_string(
         if not ctx.controller().manager.context_menu_open: self.collide_point(*args[1].pos) \
         and ctx.controller().entry_released(self, args[1]) and root.entry_released_allow
     size: ctx.controller().thumbsize + dp(52), ctx.controller().thumbsize + dp(52)
-    tooltip_text: ctx.name
     tooltip_display_delay: 1.5
-    #on_enter:
-    #    ctx.controller().set_list_contents_preview(self, ctx.path)
-    #    ctx.controller().show_hint_name_file(ctx.path)
-    #on_leave:
+    on_enter:
+        self.tooltip_text = ctx.name if ctx.controller().manager.config.getint("General", "tooltip") \
+        and not ctx.controller().manager.settings_panel_open else ""
 
     canvas:
         Color:
@@ -56,7 +54,7 @@ Builder.load_string(
         text_color:
             app.theme_cls.primary_color if self.icon == "folder" \
             else app.theme_cls.disabled_hint_text_color
-        disabled: True
+        disabled: True if self.icon != "folder" else False
 
     MDLabel:
         text: ctx.name
