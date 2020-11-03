@@ -35,7 +35,9 @@ if __name__ == "__main__":
             + find_packages(include=[package_name, package_name + ".*"])
         ),
         package_dir={package_name: package_name.replace(".", os.sep)},
-        package_data={package_name: ["*.kv", "data/*.json", "data/images/*.png"]},
+        package_data={
+            package_name: ["*.kv", "data/*.json", "data/images/*.png"]
+        },
         extras_require={
             "dev": [
                 "pre-commit",
