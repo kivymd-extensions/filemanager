@@ -1,0 +1,260 @@
+#:import os os
+#:import Path pathlib.Path
+#:import images_path kivymd.images_path
+#:import Clock kivy.clock.Clock
+
+
+<RightContentCls>
+    disabled: True
+    size_hint_x: None
+    width: icon.width
+    pos_hint: {"right": 1}
+
+    MDIconButton:
+        id: icon
+        icon: root.icon
+        user_font_size: "16sp"
+        pos_hint: {"center_y": .5}
+        # md_bg_color_disabled: 0, 0, 0, 0
+
+
+<FileManagerSettingsColorItem>
+    manager: None
+    on_release:
+        app.theme_cls.primary_palette = root.text
+        if root.manager: root.manager.config.set("General", "palette", root.text); \
+        root.manager.config.write()
+    height: "36dp"
+    font_style: "Caption"
+    _txt_bot_pad: "10dp"
+
+    FileManagerSettingsLeftWidgetItem:
+        size_hint: None, None
+        size: "24dp", "24dp"
+        pos_hint: {"center_y": .5}
+
+        canvas.before:
+            Color:
+                rgba: root.color
+            Ellipse:
+                pos: self.pos
+                size: self.size
+
+
+<FileManagerChangeTheme@MDBoxLayout>:
+    size_hint_y: None
+    height: "180dp"
+
+    RecycleView:
+        id: rv
+        key_viewclass: 'viewclass'
+        key_size: 'height'
+
+        RecycleBoxLayout:
+            default_size: None, dp(36)
+            default_size_hint: 1, None
+            size_hint_y: None
+            height: self.minimum_height
+            orientation: 'vertical'
+
+
+<FileManagerSettings>
+    orientation: "vertical"
+    adaptive_height: True
+    padding: "12dp"
+    spacing: "8dp"
+    manager: None
+
+    MDBoxLayout:
+        spacing: "4dp"
+        size_hint_y: None
+        height: "36dp"
+
+        MDCheckbox:
+            id: tooltip_check
+            size_hint: None, None
+            size: "36dp", "36dp"
+            on_active:
+                if root.manager: root.manager.config.set("General", "tooltip", int(self.active)); \
+                root.manager.config.write()
+
+        MDLabel:
+            text: "Use tooltip for filenames"
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {"center_y": .5}
+            font_style: "Caption"
+            shorten: True
+
+    MDSeparator:
+
+    MDBoxLayout:
+        spacing: "4dp"
+        size_hint_y: None
+        height: "36dp"
+
+        MDCheckbox:
+            id: memorize_check
+            size_hint: None, None
+            size: "36dp", "36dp"
+            on_active:
+                if root.manager: root.manager.config.set("General", "memorize_palette", int(self.active)); \
+                root.manager.config.write()
+
+        MDLabel:
+            text: "Memorize palette"
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {"center_y": .5}
+            font_style: "Caption"
+            shorten: True
+
+    MDSeparator:
+
+    MDBoxLayout:
+        adaptive_height: True
+        padding: "12dp", 0, 0, 0
+        spacing: "24dp"
+
+        MDSwitch:
+            id: theme_switch
+            on_active:
+                app.theme_cls.theme_style = "Dark" if self.active else "Light"
+                if root.manager: root.manager.config.set("General", "theme", app.theme_cls.theme_style); \
+                root.manager.config.write()
+
+        MDLabel:
+            text: "Theme {}".format("Dark" if app.theme_cls.theme_style == "Dark" else "Light")
+            size_hint_y: None
+            height: self.texture_size[1]
+            pos_hint: {"center_y": .5}
+            font_style: "Caption"
+            shorten: True
+
+    MDSeparator:
+
+
+<FileManager>
+
+    MDRelativeLayout:
+
+        MDRelativeLayout:
+            canvas.after:
+                Color:
+                    rgba: root._overlay_color
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            MDBoxLayout:
+                orientation: "vertical"
+                padding: "5dp"
+                md_bg_color: root.theme_cls.bg_normal if not root.bg_color else root.bg_color
+
+                canvas:
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                        source:
+                            os.path.join(images_path, "transparent.png") \
+                            if not root.bg_texture else root.bg_texture
+
+                MDBoxLayout:
+                    id: header_box_menu
+                    adaptive_height: True
+                    spacing: "4dp"
+                    md_bg_color:
+                        (0, 0, 0, 0) if root.bg_texture \
+                        else (root.theme_cls.bg_dark if not root.bg_color else root.bg_color)
+
+                MDBoxLayout:
+                    adaptive_height: True
+                    spacing: "10dp"
+
+                    MDTextField:
+                        id: field_current_path
+                        font_size: "13sp"
+                        text: root.path
+
+                MDTabs:
+                    id: tabs
+                    tab_bar_height: "24dp"
+                    background_color: header_box_menu.md_bg_color
+                    color_indicator: app.theme_cls.primary_color
+                    text_color_normal: 1, 1, 1, 1
+                    text_color_active: 1, 1, 1, 1
+                    allow_stretch: False
+                    elevation: 0
+                    tab_indicator_height: 2
+                    on_ref_press: root.remove_tab(*args)
+                    on_tab_switch: root._on_tab_switch(*args)
+
+        MDCard:
+            id: settings_container
+            size_hint_y: None
+            size_hint_x: .75
+            pos_hint: {"center_x": .5}
+            height: settings.height
+            md_bg_color: root.theme_cls.bg_darkest
+            settings_container_y: 0
+            y: root.height - self.settings_container_y
+            elevation: 12
+            radius: [0, 0, 8, 8, ]
+
+            FileManagerSettings:
+                id: settings
+                manager: root
+
+
+<FileManagerTab>
+    padding: 0, "2dp", 0, 0
+
+    Splitter:
+        direction: "right-left"
+        sizable_from: "right"
+        rescale_with_parent: False
+        size_hint_x: .4
+        strip_size: "5dp"
+
+        MDBoxLayout:
+            md_bg_color: app.theme_cls.bg_dark
+
+            # Directory tree on the left.
+            FileChooserListView:
+                id: file_chooser_list
+                path: str(Path.home())
+                filters: [root.manager.is_dir]
+                callback: root.manager.set_path
+                manager: root.manager
+
+                canvas.before:
+                    Color:
+                        rgba:
+                            root.manager.theme_cls.bg_dark \
+                            if not root.manager.bg_color \
+                            else root.manager.bg_color
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+
+    CustomFileChooserIcon:
+        id: file_chooser_icon
+        icon_folder:
+            os.path.join(root.manager.path_to_skin, "folder.png") \
+            if root.manager.path_to_skin else "folder"
+        get_icon_file: root.manager.get_icon_file
+        text_color: app.theme_cls.text_color
+        path: root.manager.path if not root.path else root.path
+        manager: root.manager
+
+
+<ContextMenuItemMore>
+    text: root.text
+    font_style: "Caption"
+    _txt_left_pad: "16dp"
+    _txt_bot_pad: "10dp"
+
+    IconRightWidget:
+        icon: root.icon
+        user_font_size: "20sp"
+        disabled: True
