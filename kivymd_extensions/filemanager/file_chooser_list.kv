@@ -133,10 +133,9 @@
 
             MDIconButton:
                 user_font_size: "15sp"
-                disabled: True
-                md_bg_color_disabled: 0, 0, 0, 0
                 theme_text_color: "Custom"
-                text_color: app.theme_cls.primary_color if ctx.isdir else [.5, .5, .5, 1]
+                text_color: app.theme_cls.primary_color
+                _no_ripple_effect: True
                 icon:
                     filemanager.tools.get_icon_for_treeview(\
                     ctx.path, os.path.splitext(ctx.name)[1], ctx.isdir)
