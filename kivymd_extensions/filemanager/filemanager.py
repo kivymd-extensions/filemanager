@@ -141,6 +141,9 @@ import ast
 import importlib
 import os
 
+from kivy.factory import Factory
+from kivy.animation import Animation
+from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
@@ -151,22 +154,33 @@ from kivy.properties import (
     ListProperty,
 )
 from kivy.uix.boxlayout import BoxLayout
-from kivy.config import Config
-from kivy.utils import get_hex_from_color
-from kivymd.font_definitions import fonts
-from kivymd.icon_definitions import md_icons
+from kivy.config import Config, ConfigParser
+from kivy.uix.widget import Widget
+from kivy.utils import get_hex_from_color, get_color_from_hex
 
 Config.set("input", "mouse", "mouse,disable_multitouch")
 
 from kivymd.uix.menu import MDDropdownMenu, RightContent
 from kivymd.uix.tab import MDTabsBase
-from kivymd.uix.button import MDIconButton
-from kivymd.uix.list import OneLineAvatarIconListItem, OneLineListItem
+from kivymd.uix.button import MDIconButton, MDFlatButton
+from kivymd.uix.list import (
+    OneLineAvatarIconListItem,
+    OneLineListItem,
+    OneLineAvatarListItem,
+    ILeftBody,
+)
 from kivymd.uix.behaviors import HoverBehavior
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.dialog import BaseDialog
+from kivymd.font_definitions import fonts
+from kivymd.icon_definitions import md_icons
+from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.card import MDSeparator
+from kivymd.color_definitions import palette
+from kivymd.color_definitions import colors
+from kivymd.uix.expansionpanel import MDExpansionPanel
+from kivymd.uix.expansionpanel import MDExpansionPanelOneLine
 
-# Loading overridden rules.
 with open(
     os.path.join(os.path.dirname(__file__), "file_chooser_list.kv"),
     encoding="utf-8",
@@ -177,134 +191,18 @@ with open(
     encoding="utf-8",
 ) as kv:
     Builder.load_string(kv.read())
-
-Builder.load_string(
-    """
-#:import os os
-#:import Path pathlib.Path
-#:import images_path kivymd.images_path
-
-
-<RightContentCls>
-    disabled: True
-    size_hint_x: None
-    width: icon.width
-    pos_hint: {"right": 1}
-
-    MDIconButton:
-        id: icon
-        icon: root.icon
-        user_font_size: "16sp"
-        pos_hint: {"center_y": .5}
-        #md_bg_color_disabled: 0, 0, 0, 0
-
-
-<FileManager>
-
-    MDBoxLayout:
-        orientation: "vertical"
-        padding: "5dp"
-        md_bg_color: root.theme_cls.bg_normal if not root.bg_color else root.bg_color
-
-        canvas:
-            Rectangle:
-                pos: self.pos
-                size: self.size
-                source:
-                    os.path.join(images_path, "transparent.png") \
-                    if not root.bg_texture else root.bg_texture
-
-        MDBoxLayout:
-            id: header_box_menu
-            adaptive_height: True
-            md_bg_color:
-                (0, 0, 0, 0) if root.bg_texture \
-                else (root.theme_cls.bg_dark if not root.bg_color else root.bg_color)
-
-        MDBoxLayout:
-            adaptive_height: True
-            spacing: "10dp"
-
-            MDTextField:
-                id: field_current_path
-                font_size: "13sp"
-                text: root.path
-
-        MDTabs:
-            id: tabs
-            tab_bar_height: "24dp"
-            background_color: header_box_menu.md_bg_color
-            color_indicator: app.theme_cls.primary_color
-            text_color_normal: 1, 1, 1, 1
-            text_color_active: 1, 1, 1, 1
-            allow_stretch: False
-            elevation: 0  #8
-            tab_indicator_height: 2
-            on_ref_press: root.remove_tab(*args)
-            on_tab_switch: root._on_tab_switch(*args)
-
-
-<Tab>
-    padding: 0, "2dp", 0, 0
-
-    Splitter:
-        direction: "right-left"
-        sizable_from: "right"
-        rescale_with_parent: False
-        size_hint_x: .4
-        strip_size: "5dp"
-
-        MDBoxLayout:
-            md_bg_color: app.theme_cls.bg_dark
-
-            # Directory tree on the left.
-            FileChooserListView:
-                id: file_chooser_list
-                path: str(Path.home())
-                filters: [root.manager.is_dir]
-                callback: root.manager.set_path
-                manager: root.manager
-
-                canvas.before:
-                    Color:
-                        rgba:
-                            root.manager.theme_cls.bg_dark \
-                            if not root.manager.bg_color \
-                            else root.manager.bg_color
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-
-    CustomFileChooserIcon:
-        id: file_chooser_icon
-        icon_folder:
-            os.path.join(root.manager.path_to_skin, "folder.png") \
-            if root.manager.path_to_skin else "folder"
-        get_icon_file: root.manager.get_icon_file
-        text_color: app.theme_cls.text_color
-        path: root.manager.path if not root.path else root.path
-        manager: root.manager
-
-
-<ContextMenuItemMore>
-    text: root.text
-    font_style: "Caption"
-    _txt_left_pad: "16dp"
-    _txt_bot_pad: "10dp"
-
-    IconRightWidget:
-        icon: root.icon
-        user_font_size: "20sp"
-        disabled: True
-"""
-)
+with open(
+    os.path.join(os.path.dirname(__file__), "filemanager.kv"),
+    encoding="utf-8",
+) as kv:
+    Builder.load_string(kv.read())
 
 
 class RightContentCls(RightContent):
     pass
 
 
-class Tab(BoxLayout, MDTabsBase):
+class FileManagerTab(BoxLayout, MDTabsBase):
     """Class implementing content for a tab."""
 
     manager = ObjectProperty()
@@ -319,6 +217,18 @@ class Tab(BoxLayout, MDTabsBase):
     :attr:`path` is an :class:`~kivy.properties.StringProperty`
     and defaults to `''`.
     """
+
+
+class FileManagerSettingsLeftWidgetItem(ILeftBody, Widget):
+    pass
+
+
+class FileManagerSettingsColorItem(OneLineAvatarListItem):
+    color = ListProperty()
+
+
+class FileManagerSettings(MDBoxLayout):
+    pass
 
 
 class ContextMenuBehavior(ThemableBehavior, HoverBehavior):
@@ -429,6 +339,8 @@ class FileManager(BaseDialog):
     defaults to `''`.
     """
 
+    _overlay_color = ListProperty([0, 0, 0, 0])
+
     auto_dismiss = False
 
     _instance_file_chooser_icon = None
@@ -436,7 +348,16 @@ class FileManager(BaseDialog):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.ext_files = {}
+        # The object of the currently open tab.
         self.current_open_tab_manager = None
+        # Open or closed the settings panel.
+        self.settings_panel_open = False
+        # Open or close the theme selection panel in the settings panel.
+        self.settings_theme_panel_open = False
+
+        self.config = ConfigParser()
+        self.data_dir = os.path.join(os.path.dirname(__file__), "data")
+        self.config.read(os.path.join(self.data_dir, "settings.ini"))
 
         self.register_event_type("on_tab_switch")
         self.register_event_type("on_tap_file")
@@ -458,7 +379,94 @@ class FileManager(BaseDialog):
             ) as data:
                 self.ext_files = ast.literal_eval(data.read())
 
-    #def show_hint_name_file(self, path):
+    def add_color_panel(self):
+        def set_list_colors_themes(*args):
+            self.settings_theme_panel_open = True
+            if not theme_panel.content.ids.rv.data:
+                for name_theme in palette:
+                    theme_panel.content.ids.rv.data.append(
+                        {
+                            "viewclass": "FileManagerSettingsColorItem",
+                            "color": get_color_from_hex(colors[name_theme]["500"]),
+                            "text": name_theme,
+                            "manager": self,
+                        }
+                    )
+
+        # Adds a panel.
+        theme_panel = MDExpansionPanel(
+            icon="palette",
+            content=Factory.FileManagerChangeTheme(),
+            panel_cls=MDExpansionPanelOneLine(text="Select theme"),
+        )
+        theme_panel.bind(
+            on_open=set_list_colors_themes,
+            on_close=self._set_state_close_theme_panel,
+        )
+        self.ids.settings.add_widget(theme_panel)
+
+        # Adds a close button to the settings panel.
+        box = MDBoxLayout(adaptive_height=True)
+        box.add_widget(Widget())
+        box.add_widget(
+            MDFlatButton(
+                text="CLOSE",
+                on_release=lambda x: self.hide_settings(theme_panel),
+            )
+        )
+        self.ids.settings.add_widget(box)
+
+    def apply_palette(self):
+        """Applies the color theme from the settings file when opening the
+        file manager window."""
+
+        palette = self.config.get("General", "palette")
+        theme = self.config.get("General", "theme")
+        memorize_palette = self.config.getint("General", "memorize_palette")
+
+        if memorize_palette:
+            self.theme_cls.primary_palette = palette
+            self.theme_cls.theme_style = theme
+
+    def apply_properties_on_show_settings(self):
+        """Applies the settings from the "settings.ini" file to the checkboxes
+        of items on the settings panel."""
+
+        self.ids.settings.ids.tooltip_check.active = self.config.getint(
+            "General", "tooltip"
+        )
+        self.ids.settings.ids.memorize_check.active = self.config.getint(
+            "General", "memorize_palette"
+        )
+        self.ids.settings.ids.theme_switch.active = (
+            1 if self.theme_cls.theme_style == "Dark" else 0
+        )
+        self.settings_panel_open = False
+
+    def show_settings(self, instance_button):
+        """Opens the settings panel."""
+
+        self.apply_properties_on_show_settings()
+        Animation(
+            settings_container_y=self.ids.settings.height,
+            d=0.2,
+        ).start(self.ids.settings_container)
+        Animation(_overlay_color=[0, 0, 0, .4],d=0.2,).start(self)
+        self.settings_panel_open = True
+
+    def hide_settings(self, theme_panel):
+        """Closes the settings panel."""
+
+        def hide_settings(interval):
+            Animation(settings_container_y=0, d=0.2).start(
+               self.ids.settings_container
+            )
+            self._set_state_close_theme_panel()
+
+        if self.settings_theme_panel_open:
+            theme_panel.check_open_panel(theme_panel)
+        Clock.schedule_once(hide_settings, 0.5)
+        Animation(_overlay_color=[0, 0, 0, 0], d=0.2, ).start(self)
 
     def set_path(self, path):
         """Sets the directory path for the `FileChooserIconLayout` class."""
@@ -481,11 +489,14 @@ class FileManager(BaseDialog):
     def add_tab(self, path_to_file):
         """
         Adds a new tab in the file manager.
+
         :param path_to_file: The path to the file or folder that was right-clicked.
         """
 
-        tab_text = self.get_formatting_text_for_tab(os.path.split(path_to_file)[1])
-        tab = Tab(manager=self, text=tab_text, path=path_to_file)
+        tab_text = self.get_formatting_text_for_tab(
+            os.path.split(path_to_file)[1]
+        )
+        tab = FileManagerTab(manager=self, text=tab_text, path=path_to_file)
         self._instance_file_chooser_icon = tab.ids.file_chooser_icon
         self.ids.tabs.add_widget(tab)
         self.current_open_tab_manager = tab
@@ -528,11 +539,19 @@ class FileManager(BaseDialog):
                         icon=name_icon_item,
                         user_font_size="18sp",
                         disabled=True
-                        if name_icon_item not in ["home", "settings"]
+                        if name_icon_item not in ("home", "settings")
                         else False,
                         md_bg_color_disabled=(0, 0, 0, 0),
                     )
                 )
+        self.ids.header_box_menu.add_widget(MDSeparator(orientation="vertical"))
+        self.ids.header_box_menu.add_widget(
+            MDIconButton(
+                icon="cog",
+                user_font_size="18sp",
+                on_release=self.show_settings,
+            )
+        )
 
     def open_context_menu(self, entry_object, type_chooser):
         """Opens a context menu on right-clicking on a file or folder."""
@@ -581,7 +600,9 @@ class FileManager(BaseDialog):
             entry_object.remove_tooltip()
 
     def call_context_menu_plugin(self, name_plugin, entry_object):
-        module = importlib.import_module(f"kivymd_extensions.filemanager.libs.plugins.contextmenu")
+        module = importlib.import_module(
+            f"kivymd_extensions.filemanager.libs.plugins.contextmenu"
+        )
         plugin_cls = module.ContextMenuPlugin(
             instance_manager=self,
             entry_object=entry_object,
@@ -713,6 +734,8 @@ class FileManager(BaseDialog):
 
         self.add_tab(self.path)
         self.create_header_menu()
+        self.apply_palette()
+        self.add_color_panel()
 
     def _on_tab_switch(
         self, instance_tabs, instance_tab, instance_tab_label, tab_text
@@ -725,3 +748,6 @@ class FileManager(BaseDialog):
             instance_tab_label,
             tab_text,
         )
+
+    def _set_state_close_theme_panel(self, *args):
+        self.settings_theme_panel_open = False
