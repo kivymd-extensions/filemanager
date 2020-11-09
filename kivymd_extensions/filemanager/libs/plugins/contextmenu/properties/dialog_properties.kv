@@ -26,12 +26,15 @@
             spacing: "12dp"
 
             MDIconButton:
-                size_hint_x: None
-                width: "50dp"
+                user_font_size: STANDARD_INCREMENT
+                pos_hint: {"center_y": .5}
                 disabled: True
+                theme_text_color: "Custom"
+                text_color: root.theme_cls.primary_color
                 icon:
-                    root.instance_context_menu.instance_manager.get_icon_file(\
-                    root.instance_context_menu.entry_object.path)
+                    root.instance_context_menu.instance_manager.get_icon_file(root.instance_context_menu.entry_object.path) \
+                    if os.path.isfile((root.instance_context_menu.entry_object.path)) \
+                    else ("folder" if not root.instance_manager.path_to_skin else os.path.join(root.instance_manager.path_to_skin, "folder"))
 
             MDBoxLayout:
                 orientation: "vertical"
