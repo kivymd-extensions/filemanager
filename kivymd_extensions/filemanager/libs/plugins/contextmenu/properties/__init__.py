@@ -19,7 +19,10 @@ with open(
 
 
 class DialogProperties(PluginBaseDialog):
+    # <filemanager.libs.plugins.contextmenu.ContextMenuPlugin object>
     instance_context_menu = ObjectProperty()
+    # <filemanager.filemanager.FileManager object at 0x115f12cd0>
+    instance_manager = ObjectProperty()
 
     def get_first_created(self):
         return datetime.datetime.fromtimestamp(
@@ -37,7 +40,14 @@ class DialogProperties(PluginBaseDialog):
         )
 
     def get_file_size(self):
-        return file_size(self.instance_context_menu.entry_object.path)
+        path = self.instance_context_menu.entry_object.path
+        if os.path.isfile(path):
+            return file_size(self.instance_context_menu.entry_object.path)
+        else:
+            count = 0
+            for d, dirs, files in os.walk(path):
+                count += len(files)
+            return f"Count files {count}"
 
     def get_access_string(self):
         return get_access_string(self.instance_context_menu.entry_object.path)
@@ -56,3 +66,7 @@ class DialogProperties(PluginBaseDialog):
 
     def on_instance_context_menu(self, instance, value):
         Clock.schedule_once(self.set_access)
+
+    def on_pre_open(self):
+        if os.path.isdir(self.instance_context_menu.entry_object.path):
+            self.ids.container.remove_widget(self.ids.x)
