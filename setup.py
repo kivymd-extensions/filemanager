@@ -36,7 +36,7 @@ if __name__ == "__main__":
         ),
         package_dir={package_name: package_name.replace(".", os.sep)},
         package_data={
-            package_name: ["*.kv", "data/*.json", "data/images/*.png"]
+            package_name: ["*.kv", "data/*", "data/images/*.png"]
         },
         extras_require={
             "dev": [
