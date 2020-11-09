@@ -30,7 +30,8 @@ Builder.load_string(
     tooltip_display_delay: 1.5
     on_enter:
         self.tooltip_text = ctx.name if ctx.controller().manager.config.getint("General", "tooltip") \
-        and not ctx.controller().manager.settings_panel_open else ""
+        and not ctx.controller().manager.settings_panel_open and not ctx.controller().manager.dialog_plugin_open \
+        and not ctx.controller().manager.dialog_files_search_results_open else ""
 
     canvas:
         Color:
