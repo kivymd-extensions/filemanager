@@ -1,7 +1,6 @@
 import os
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
 
 from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
 
@@ -12,4 +11,4 @@ with open(
 
 
 class DialogMoveToTrash(PluginBaseDialog):
-    instance_context_menu = ObjectProperty()
+    pass
