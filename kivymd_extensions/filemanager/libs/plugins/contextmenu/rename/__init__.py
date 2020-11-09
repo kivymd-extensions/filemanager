@@ -2,7 +2,6 @@ import os
 
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
 
 from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
 
@@ -13,8 +12,6 @@ with open(
 
 
 class DialogRename(PluginBaseDialog):
-    instance_context_menu = ObjectProperty()
-
     def set_focus(self, interval):
         self.ids.field.focus = True
 
