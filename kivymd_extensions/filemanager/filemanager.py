@@ -137,26 +137,30 @@ Events
     Example().run()
 """
 
+import re
 import ast
 import importlib
 import os
+import threading
 
 from kivy.factory import Factory
 from kivy.animation import Animation
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.metrics import dp
+from kivy.metrics import dp, sp
 from kivy.properties import (
     StringProperty,
     ObjectProperty,
     BooleanProperty,
     ListProperty,
+    OptionProperty,
+    DictProperty,
 )
 from kivy.uix.boxlayout import BoxLayout
 from kivy.config import Config, ConfigParser
 from kivy.uix.widget import Widget
-from kivy.utils import get_hex_from_color, get_color_from_hex
+from kivy.utils import get_color_from_hex, get_hex_from_color
 
 Config.set("input", "mouse", "mouse,disable_multitouch")
 
@@ -180,6 +184,9 @@ from kivymd.color_definitions import palette
 from kivymd.color_definitions import colors
 from kivymd.uix.expansionpanel import MDExpansionPanel
 from kivymd.uix.expansionpanel import MDExpansionPanelOneLine
+from kivymd.uix.relativelayout import MDRelativeLayout
+
+from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
 
 with open(
     os.path.join(os.path.dirname(__file__), "file_chooser_list.kv"),
@@ -219,6 +226,184 @@ class FileManagerTab(BoxLayout, MDTabsBase):
     """
 
 
+class FileManagerTextFieldSearch(ThemableBehavior, MDRelativeLayout):
+    """The class implements a text field for searching files.
+
+    See rule ``FileManagerTextFieldSearch``
+    in ``kivymd_extensions/filemanager/filemanager.kv file``.
+    """
+
+    hint_text = StringProperty()
+    """
+    See :attr:`~kivy.uix.textinput.TextInput.hint_text
+    """
+
+    background_normal = StringProperty()
+    """
+    See :attr:`~kivy.uix.textinput.TextInput.background_normal
+    """
+
+    background_active = StringProperty()
+    """
+    See :attr:`~kivy.uix.textinput.TextInput.background_active
+    """
+
+    type = OptionProperty("name", options=["name", "ext"])
+    """
+    Search files by name or extension. Available options are `'name'`, `'ext'`.
+
+    :attr:`icon` is an :class:`~kivy.properties.OptionProperty`
+    and defaults to `'name'`.
+    """
+
+    manager = ObjectProperty()
+    """
+    See :class:`FileManager` object.
+    """
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        # Signal to interrupt the search process
+        self.canceled_search = False
+        # <FileManagerTextFieldSearchDialog object>
+        self.text_field_search_dialog = None
+        # <kivymd.uix.menu.MDDropdownMenu object>
+        self.context_menu_search_field = None
+        # Whether to search the entire disk or the current directory.
+        self.search_all_disk = False
+        self.end_search = False
+        Clock.schedule_once(self.create_menu)
+
+    def on_enter(self, instance, value):
+        """Called when the user hits 'Enter' in text field."""
+
+        def wait_result(interval):
+            if self.end_search:
+                Clock.unschedule(wait_result)
+                if data_results:
+                    FileManagerFilesSearchResultsDialog(
+                        data_results=data_results, manager=self.manager
+                    ).open()
+                    self.manager.dialog_files_search_results_open = True
+
+        def start_search(interval):
+            threading.Thread(
+                target=get_matching_files,
+                args=(
+                    "/" if self.search_all_disk else self.manager.path,
+                    value,
+                ),
+            ).start()
+
+        def get_matching_files(path, name_file):
+            for d, dirs, files in os.walk(path):
+                if self.canceled_search:
+                    break
+                self.text_field_search_dialog.ids.lbl_dir.text = d
+                for f in files:
+                    self.text_field_search_dialog.ids.lbl_file.text = f
+                    self.manager.ids.lbl_task.text = (
+                        f"Search in [color="
+                        f"{get_hex_from_color(self.theme_cls.primary_color)}]"
+                        f"{os.path.dirname(d)}:[/color] {f}"
+                    )
+                    if self.ids.text_field.hint_text == "Search by name":
+                        if name_file in f:
+                            data_results[f] = os.path.join(d, f)
+                    elif self.ids.text_field.hint_text == "Search by extension":
+                        if f.endswith(name_file):
+                            data_results[f] = os.path.join(d, f)
+            if self.canceled_search:
+                self.canceled_search = False
+            self.end_search = True
+            self.text_field_search_dialog.dismiss()
+
+        self.text_field_search_dialog = FileManagerTextFieldSearchDialog(
+            manager=self.manager
+        )
+        self.text_field_search_dialog.open()
+        self.end_search = False
+        data_results = {}
+        Clock.schedule_once(start_search, 1)
+        Clock.schedule_interval(wait_result, 0)
+
+    def create_menu(self, interval):
+        menu = []
+        for text in (
+            "Search by extension",
+            "Search by name",
+            "All over the disk",
+        ):
+            menu.append(
+                {
+                    "text": f"[size=14]{text}[/size]",
+                    "height": "36dp",
+                    "top_pad": "4dp",
+                    "bot_pad": "10dp",
+                    "divider": None,
+                }
+            )
+        self.context_menu_search_field = MDDropdownMenu(
+            caller=self.ids.lbl_icon_right,
+            items=menu,
+            width_mult=4,
+            background_color=self.theme_cls.bg_dark,
+            max_height=dp(240),
+        )
+        self.context_menu_search_field.bind(on_release=self.set_type_search)
+
+    def set_type_search(self, instance_context_menu, instance_context_item):
+        self.context_menu_search_field.dismiss()
+        self.search_all_disk = False
+        item_text = re.sub(
+            "\[size\s*([^\]]+)\]", "", instance_context_item.text
+        )
+        item_text = re.sub("\[/size\s*\]", "", item_text)
+        if item_text == "Search by extension":
+            self.type = "ext"
+        elif item_text == "Search by name":
+            self.type = "name"
+        elif item_text == "All over the disk":
+            self.search_all_disk = True
+            self.ids.text_field.hint_text += f" {item_text.lower()}"
+            return
+        self.ids.text_field.hint_text = item_text
+
+
+class FileManagerFilesSearchResultsDialog(PluginBaseDialog):
+    """
+    The class implements displaying a list with the results of file search.
+    """
+
+    data_results = DictProperty()
+
+    manager = ObjectProperty()
+    """
+    See :class:`FileManager` object.
+    """
+
+    def on_open(self):
+        self.ids.rv.data = []
+        for name_file in self.data_results.keys():
+            text = (
+                f"[color={get_hex_from_color(self.theme_cls.primary_color)}]"
+                f"{name_file}[/color] {self.data_results[name_file]}"
+            )
+            self.ids.rv.data.append(
+                {
+                    "viewclass": "OneLineListItem",
+                    "text": text,
+                    "on_release": lambda x=self.data_results[name_file]: self.go_to_directory_found_file(x)
+                }
+            )
+
+    def on_dismiss(self):
+        self.manager.dialog_files_search_results_open = False
+
+    def go_to_directory_found_file(self, path_to_found_file):
+        self.manager.add_tab(os.path.dirname(path_to_found_file))
+
+
 class FileManagerSettingsLeftWidgetItem(ILeftBody, Widget):
     pass
 
@@ -229,6 +414,10 @@ class FileManagerSettingsColorItem(OneLineAvatarListItem):
 
 class FileManagerSettings(MDBoxLayout):
     pass
+
+
+class FileManagerTextFieldSearchDialog(PluginBaseDialog):
+    manager = ObjectProperty()
 
 
 class ContextMenuBehavior(ThemableBehavior, HoverBehavior):
@@ -288,6 +477,10 @@ class FileManager(BaseDialog):
         `on_context_menu`
             Called at the end of any actions of the context menu,
             be it copying, archiving files and other actions.
+        `on_open_plugin_dialog`
+            Description.
+        `on_dismiss_plugin_dialog`
+            Description.
     """
 
     with open(
@@ -354,6 +547,12 @@ class FileManager(BaseDialog):
         self.settings_panel_open = False
         # Open or close the theme selection panel in the settings panel.
         self.settings_theme_panel_open = False
+        # Open or close the dialog of plugin.
+        self.dialog_plugin_open = False
+        # Open or close dialog with search results.
+        self.dialog_files_search_results_open = False
+
+        self.instance_search_field = None
 
         self.config = ConfigParser()
         self.data_dir = os.path.join(os.path.dirname(__file__), "data")
@@ -363,6 +562,10 @@ class FileManager(BaseDialog):
         self.register_event_type("on_tap_file")
         self.register_event_type("on_tap_dir")
         self.register_event_type("on_context_menu")
+        self.register_event_type("on_open_plugin_dialog")
+        self.register_event_type("on_dismiss_plugin_dialog")
+
+        self.theme_cls.bind(theme_style=self.update_background_search_field)
 
         if self.path_to_skin and os.path.exists(self.path_to_skin):
             path_to_directory_exts = os.path.join(self.path_to_skin, "files")
@@ -387,7 +590,9 @@ class FileManager(BaseDialog):
                     theme_panel.content.ids.rv.data.append(
                         {
                             "viewclass": "FileManagerSettingsColorItem",
-                            "color": get_color_from_hex(colors[name_theme]["500"]),
+                            "color": get_color_from_hex(
+                                colors[name_theme]["500"]
+                            ),
                             "text": name_theme,
                             "manager": self,
                         }
@@ -441,7 +646,32 @@ class FileManager(BaseDialog):
         self.ids.settings.ids.theme_switch.active = (
             1 if self.theme_cls.theme_style == "Dark" else 0
         )
-        self.settings_panel_open = False
+
+    def show_taskbar(self):
+        def on_complete_animation(*args):
+            self.ids.task_spinner.active = True
+            self.ids.lbl_task.opacity = 1
+
+        Animation(height=dp(24), d=0.2).start(self.ids.taskbar)
+        Animation(user_font_size=sp(18), d=0.2).start(self.ids.button_expand)
+        anim = Animation(opacity=1, d=0.2)
+        anim.bind(on_complete=on_complete_animation)
+        anim.start(self.ids.task_spinner)
+
+    def hide_taskbar(self):
+        def on_complete_animation(*args):
+            self.ids.task_spinner.active = False
+            self.ids.lbl_task.opacity = 0
+            self.instance_search_field.text_field_search_dialog.ids.check_background.active = (
+                False
+            )
+            self.instance_search_field.text_field_search_dialog.open()
+
+        Animation(height=0, d=0.2).start(self.ids.taskbar)
+        Animation(user_font_size=0.1, d=0.2).start(self.ids.button_expand)
+        anim = Animation(opacity=1, d=0.2)
+        anim.bind(on_complete=on_complete_animation)
+        anim.start(self.ids.task_spinner)
 
     def show_settings(self, instance_button):
         """Opens the settings panel."""
@@ -451,7 +681,10 @@ class FileManager(BaseDialog):
             settings_container_y=self.ids.settings.height,
             d=0.2,
         ).start(self.ids.settings_container)
-        Animation(_overlay_color=[0, 0, 0, .4],d=0.2,).start(self)
+        Animation(
+            _overlay_color=[0, 0, 0, 0.4],
+            d=0.2,
+        ).start(self)
         self.settings_panel_open = True
 
     def hide_settings(self, theme_panel):
@@ -459,14 +692,18 @@ class FileManager(BaseDialog):
 
         def hide_settings(interval):
             Animation(settings_container_y=0, d=0.2).start(
-               self.ids.settings_container
+                self.ids.settings_container
             )
             self._set_state_close_theme_panel()
 
         if self.settings_theme_panel_open:
             theme_panel.check_open_panel(theme_panel)
         Clock.schedule_once(hide_settings, 0.5)
-        Animation(_overlay_color=[0, 0, 0, 0], d=0.2, ).start(self)
+        Animation(
+            _overlay_color=[0, 0, 0, 0],
+            d=0.2,
+        ).start(self)
+        self.settings_panel_open = False
 
     def set_path(self, path):
         """Sets the directory path for the `FileChooserIconLayout` class."""
@@ -479,11 +716,7 @@ class FileManager(BaseDialog):
     def get_formatting_text_for_tab(self, text):
         icon_font = fonts[-1]["fn_regular"]
         icon = md_icons["close"]
-        text = (
-            f"[color={get_hex_from_color(self.theme_cls.text_color)}]"
-            f"[size=16][font={icon_font}][ref=]{icon}[/ref][/size][/font]"
-            f" {text}[/color]"
-        )
+        text = f"[size=16][font={icon_font}][ref=]{icon}[/ref][/size][/font] {text}"
         return text
 
     def add_tab(self, path_to_file):
@@ -552,6 +785,29 @@ class FileManager(BaseDialog):
                 on_release=self.show_settings,
             )
         )
+        background_normal = os.path.join(
+            self.data_dir,
+            "images",
+            "bg-field.png"
+            if self.theme_cls.theme_style == "Light"
+            else "bg-field-dark.png",
+        )
+        self.instance_search_field = FileManagerTextFieldSearch(
+            background_normal=background_normal,
+            background_active=background_normal,
+            manager=self,
+        )
+        self.ids.header_box_menu.add_widget(Widget())
+        self.ids.header_box_menu.add_widget(self.instance_search_field)
+
+    def update_background_search_field(self, instance, value):
+        background_normal = os.path.join(
+            self.data_dir,
+            "images",
+            "bg-field.png" if value == "Light" else "bg-field-dark.png",
+        )
+        self.instance_search_field.background_normal = background_normal
+        self.instance_search_field.background_active = background_normal
 
     def open_context_menu(self, entry_object, type_chooser):
         """Opens a context menu on right-clicking on a file or folder."""
@@ -722,6 +978,12 @@ class FileManager(BaseDialog):
 
     def on_tab_switch(self, *args):
         """Called when switching tab."""
+
+    def on_open_plugin_dialog(self, *args):
+        self.dialog_plugin_open = True
+
+    def on_dismiss_plugin_dialog(self, *args):
+        self.dialog_plugin_open = False
 
     def on_context_menu(self, *args):
         """
