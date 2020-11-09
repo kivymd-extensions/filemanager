@@ -3,7 +3,6 @@ import os
 
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
 
 from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
 from kivymd_extensions.filemanager.libs.tools import (
@@ -19,11 +18,6 @@ with open(
 
 
 class DialogProperties(PluginBaseDialog):
-    # <filemanager.libs.plugins.contextmenu.ContextMenuPlugin object>
-    instance_context_menu = ObjectProperty()
-    # <filemanager.filemanager.FileManager object at 0x115f12cd0>
-    instance_manager = ObjectProperty()
-
     def get_first_created(self):
         return datetime.datetime.fromtimestamp(
             int(os.path.getctime(self.instance_context_menu.entry_object.path))
