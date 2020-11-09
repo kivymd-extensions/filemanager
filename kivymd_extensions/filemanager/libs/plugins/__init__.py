@@ -1,5 +1,5 @@
 from kivy.lang import Builder
-from kivy.properties import ListProperty
+from kivy.properties import ListProperty, ObjectProperty
 from kivy.uix.modalview import ModalView
 
 from kivymd.theming import ThemableBehavior
@@ -32,3 +32,7 @@ class PluginBaseDialog(ThemableBehavior, ModalView):
 
     bg_color = ListProperty()  # background color of the dialog
     bg_background = ListProperty()  # path to background image of the dialog
+    # <filemanager.libs.plugins.contextmenu.ContextMenuPlugin object>
+    instance_context_menu = ObjectProperty()
+    # <filemanager.filemanager.FileManager object at 0x115f12cd0>
+    instance_manager = ObjectProperty()
