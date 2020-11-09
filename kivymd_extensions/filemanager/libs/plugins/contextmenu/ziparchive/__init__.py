@@ -2,7 +2,6 @@ import os
 import zipfile
 
 from kivy.lang import Builder
-from kivy.properties import ObjectProperty
 from kivymd.utils import asynckivy
 
 from kivymd_extensions.filemanager.libs.plugins import PluginBaseDialog
@@ -14,8 +13,6 @@ with open(
 
 
 class DialogZipArchive(PluginBaseDialog):
-    instance_context_menu = ObjectProperty()
-
     def set_progress_value(self, count_files, count):
         self.ids.progress_line.value = int(count / count_files * 100)
 
