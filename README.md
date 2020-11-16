@@ -22,6 +22,7 @@ pip install kivymd_extensions.filemanager
 - [Python 3.6+](https://www.python.org/)
 
 ## Documentation
+See documentation at https://file-manager.readthedocs.io/en/latest/components/file-manager/
 
 ### Usage
 
