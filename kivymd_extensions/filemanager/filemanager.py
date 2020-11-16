@@ -27,6 +27,9 @@ Usage
         def on_start(self):
             FileManager().open()
 
+
+    Example().run()
+
 Customization
 =============
 
