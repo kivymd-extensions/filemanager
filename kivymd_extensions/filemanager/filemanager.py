@@ -668,7 +668,7 @@ class FileManager(BaseDialog):
             self.instance_search_field.text_field_search_dialog.open()
 
         Animation(height=0, d=0.2).start(self.ids.taskbar)
-        Animation(user_font_size=0.1, d=0.2).start(self.ids.button_expand)
+        Animation(user_font_size=sp(1), d=0.2).start(self.ids.button_expand)
         anim = Animation(opacity=1, d=0.2)
         anim.bind(on_complete=on_complete_animation)
         anim.start(self.ids.task_spinner)
@@ -729,11 +729,11 @@ class FileManager(BaseDialog):
         tab_text = self.get_formatting_text_for_tab(
             os.path.split(path_to_file)[1]
         )
-        tab = FileManagerTab(manager=self, text=tab_text, path=path_to_file)
+        tab = FileManagerTab(manager=self, title=tab_text, path=path_to_file)
         self._instance_file_chooser_icon = tab.ids.file_chooser_icon
         self.ids.tabs.add_widget(tab)
         self.current_open_tab_manager = tab
-        self.ids.tabs.switch_tab(tab_text)
+        self.ids.tabs.switch_tab(tab_text, search_by="title")
         self.path = path_to_file
 
     def remove_tab(
