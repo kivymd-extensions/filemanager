@@ -5,7 +5,11 @@ from kivymd_extensions.filemanager import FileManager
 
 class Example(MDApp):
     def on_context_menu(self, instance_file_manager, name_context_plugin):
-        print("Event 'on_context_menu'", instance_file_manager, name_context_plugin)
+        print(
+            "Event 'on_context_menu'",
+            instance_file_manager,
+            name_context_plugin,
+        )
 
     def on_tap_file(self, instance_file_manager, path):
         print("Event 'on_tap_file'", instance_file_manager, path)
