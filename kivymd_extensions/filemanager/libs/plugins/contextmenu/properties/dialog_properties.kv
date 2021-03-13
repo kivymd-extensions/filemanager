@@ -28,9 +28,10 @@
             MDIconButton:
                 user_font_size: STANDARD_INCREMENT
                 pos_hint: {"center_y": .5}
-                disabled: True
                 theme_text_color: "Custom"
+                md_bg_color_disabled: 0, 0, 0, 0
                 text_color: root.theme_cls.primary_color
+                disabled: True
                 icon:
                     root.instance_context_menu.instance_manager.get_icon_file(root.instance_context_menu.entry_object.path) \
                     if os.path.isfile((root.instance_context_menu.entry_object.path)) \
