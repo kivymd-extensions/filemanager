@@ -13,7 +13,9 @@ from kivy.utils import QueryDict
 
 Builder.load_string(
     """
-[FileThumbEntry@MDTooltip]:
+[FileThumbEntry@BoxLayout+MDTooltip]:
+    orientation: "vertical"
+    spacing: "4dp"
     image: image
     locked: False
     path: ctx.path
@@ -47,11 +49,9 @@ Builder.load_string(
         user_font_size:
             sp(int(ctx.controller().thumbsize)) \
             if self.icon == "folder" else sp(int(ctx.controller().thumbsize / 2))
-        pos:
-            root.x + (dp(12) if self.icon == "folder" else dp(32)), \
-            root.y + (dp(40) if self.icon == "folder" else dp(56))
         theme_text_color: "Custom"
         pos_hint: {"center_x": .5}
+        md_bg_color_disabled: 0, 0, 0, 0
         text_color:
             app.theme_cls.primary_color if self.icon == "folder" \
             else app.theme_cls.disabled_hint_text_color
@@ -64,7 +64,7 @@ Builder.load_string(
         halign: "center"
         shorten: True
         size: ctx.controller().thumbsize, "16dp"
-        pos: root.center_x - self.width / 2, root.y + dp(32)
+        pos_hint: {"center_x": .5}
         color: ctx.controller().text_color
         font_style: "Caption"
 
@@ -75,9 +75,11 @@ Builder.load_string(
         size_hint: None, None
         -text_size: None, None
         size: ctx.controller().thumbsize, "16sp"
-        pos: root.center_x - self.width / 2, root.y + dp(16)
+        pos_hint: {"center_x": .5}
         halign: "center"
         color: ctx.controller().text_color
+
+    Widget:
 
 
 <CustomFileChooserIcon>:
