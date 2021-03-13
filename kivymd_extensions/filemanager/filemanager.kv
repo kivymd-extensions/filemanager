@@ -16,6 +16,7 @@
         icon: root.icon
         user_font_size: "16sp"
         pos_hint: {"center_y": .5}
+        md_bg_color_disabled: 0, 0, 0, 0
 
 
 <FileManagerTextFieldSearch>
@@ -313,7 +314,6 @@
                     color_indicator: app.theme_cls.primary_color
                     text_color_normal: app.theme_cls.text_color
                     text_color_active: app.theme_cls.primary_color
-                    allow_stretch: False
                     elevation: 0
                     tab_indicator_height: 2
                     on_ref_press: root.remove_tab(*args)
@@ -348,7 +348,7 @@
                         MDIconButton:
                             id: button_expand
                             icon: "arrow-up-bold-box-outline"
-                            user_font_size: 0.1
+                            user_font_size: "1sp"
                             pos_hint: {"center_y": .5}
                             ripple_scale: .4
                             on_release: root.hide_taskbar()
