@@ -5,18 +5,10 @@
 #:import Window kivy.core.window.Window
 
 
-<RightContentCls>
-    disabled: True
-    size_hint_x: None
-    width: icon.width
-    pos_hint: {"right": 1}
+<FileManagerItem>
 
-    MDIconButton:
-        id: icon
+    IconLeftWidget:
         icon: root.icon
-        user_font_size: "16sp"
-        pos_hint: {"center_y": .5}
-        md_bg_color_disabled: 0, 0, 0, 0
 
 
 <FileManagerTextFieldSearch>
