@@ -167,7 +167,7 @@ from kivy.utils import get_color_from_hex, get_hex_from_color
 
 Config.set("input", "mouse", "mouse,disable_multitouch")
 
-from kivymd.uix.menu import MDDropdownMenu, RightContent
+from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.button import MDIconButton, MDFlatButton
 from kivymd.uix.list import (
@@ -208,8 +208,8 @@ with open(
     Builder.load_string(kv.read())
 
 
-class RightContentCls(RightContent):
-    pass
+class FileManagerItem(OneLineAvatarIconListItem):
+    icon = StringProperty()
 
 
 class FileManagerTab(BoxLayout, MDTabsBase):
@@ -340,10 +340,14 @@ class FileManagerTextFieldSearch(ThemableBehavior, MDRelativeLayout):
             menu.append(
                 {
                     "text": f"[size=14]{text}[/size]",
-                    "height": "36dp",
-                    "top_pad": "4dp",
-                    "bot_pad": "10dp",
+                    "viewclass": "OneLineListItem",
+                    "height": dp(36),
+                    "top_pad": dp(4),
+                    "bot_pad": dp(10),
                     "divider": None,
+                    "on_release": lambda x=f"[size=14]{text}[/size]": self.set_type_search(
+                        x
+                    ),
                 }
             )
         self.context_menu_search_field = MDDropdownMenu(
@@ -353,14 +357,11 @@ class FileManagerTextFieldSearch(ThemableBehavior, MDRelativeLayout):
             background_color=self.theme_cls.bg_dark,
             max_height=dp(240),
         )
-        self.context_menu_search_field.bind(on_release=self.set_type_search)
 
-    def set_type_search(self, instance_context_menu, instance_context_item):
+    def set_type_search(self, text_item):
         self.context_menu_search_field.dismiss()
         self.search_all_disk = False
-        item_text = re.sub(
-            "\[size\s*([^\]]+)\]", "", instance_context_item.text
-        )
+        item_text = re.sub("\[size\s*([^\]]+)\]", "", text_item)
         item_text = re.sub("\[/size\s*\]", "", item_text)
         if item_text == "Search by extension":
             self.type = "ext"
@@ -396,7 +397,9 @@ class FileManagerFilesSearchResultsDialog(PluginBaseDialog):
                 {
                     "viewclass": "OneLineListItem",
                     "text": text,
-                    "on_release": lambda x=self.data_results[name_file]: self.go_to_directory_found_file(x)
+                    "on_release": lambda x=self.data_results[
+                        name_file
+                    ]: self.go_to_directory_found_file(x),
                 }
             )
 
@@ -823,9 +826,6 @@ class FileManager(BaseDialog):
             max_height=dp(240),
         )
         menu.bind(
-            on_release=lambda *args: self.tap_to_context_menu_item(
-                *args, entry_object
-            ),
             on_dismiss=self.context_menu_dismiss,
         )
         menu.open()
@@ -868,9 +868,7 @@ class FileManager(BaseDialog):
         )
         plugin_cls.main(name_plugin)
 
-    def tap_to_context_menu_item(
-        self, instance_menu, instance_item, entry_object
-    ):
+    def tap_to_context_menu_item(self, text_item, entry_object):
         """
         :type entry_object:  <kivy.lang.builder.FileThumbEntry object>
         :type instance_item: <kivymd.uix.menu.MDMenuItemIcon object>
@@ -880,7 +878,7 @@ class FileManager(BaseDialog):
         for data_item in self.menu_right_click_items:
             if (
                 list(data_item.items())
-                and instance_item.text in list(data_item.items())[0]
+                and text_item in list(data_item.items())[0]
             ):
                 if "cls" in data_item:
                     self.call_context_menu_plugin(
@@ -888,7 +886,7 @@ class FileManager(BaseDialog):
                     )
                     break
 
-        if instance_item.text == "Open in new tab":
+        if text_item == "Open in new tab":
             self.add_tab(entry_object.path)
             self.dismiss_context_menu()
 
@@ -911,45 +909,43 @@ class FileManager(BaseDialog):
         if type_chooser == "FileChooserIcon":
             for data_item in self.menu_right_click_items:
                 if data_item:
-                    if list(data_item.items())[0][1].endswith(">"):
-                        menu_right_click_items.append(
-                            {
-                                "right_content_cls": RightContentCls(
-                                    icon="menu-right-outline",
-                                ),
-                                "icon": list(data_item.items())[0][0],
-                                "text": list(data_item.items())[0][1][:-2],
-                                "height": "36dp",
-                                "top_pad": "4dp",
-                                "bot_pad": "10dp",
-                                "divider": None,
-                            }
-                        )
+                    icon = list(data_item.items())[0][0]
+                    if icon:
+                        viewclass = "FileManagerItem"
+                        _txt_left_pad = dp(72)
                     else:
-                        menu_right_click_items.append(
-                            {
-                                "text": list(data_item.items())[0][1],
-                                "icon": list(data_item.items())[0][0],
-                                "font_style": "Caption",
-                                "height": "36dp",
-                                "divider": None,
-                                "top_pad": "4dp",
-                                "bot_pad": "10dp",
-                            }
-                        )
-                else:
+                        viewclass = "OneLineListItem"
+                        _txt_left_pad = dp(32)
+                    text = list(data_item.items())[0][1]
                     menu_right_click_items.append(
-                        {"viewclass": "MDSeparator", "height": dp(1)}
+                        {
+                            "text": text,
+                            "viewclass": viewclass,
+                            "icon": icon,
+                            "font_style": "Caption",
+                            "height": dp(36),
+                            "top_pad": dp(4),
+                            "bot_pad": dp(10),
+                            "divider": None,
+                            "_txt_left_pad": _txt_left_pad,
+                            "on_release": lambda x=text, y=entry_object: self.tap_to_context_menu_item(
+                                x, y
+                            ),
+                        }
                     )
         if type_chooser == "FileChooserList":
             menu_right_click_items.append(
                 {
+                    "viewclass": "OneLineListItem",
                     "text": "Open in new tab",
                     "font_style": "Caption",
-                    "height": "36dp",
+                    "height": dp(36),
                     "divider": None,
-                    "top_pad": "4dp",
-                    "bot_pad": "10dp",
+                    "top_pad": dp(4),
+                    "bot_pad": dp(10),
+                    "on_release": lambda x="Open in new tab", y=entry_object: self.tap_to_context_menu_item(
+                        x, y
+                    ),
                 }
             )
         return menu_right_click_items
